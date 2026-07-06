@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Caliber — strength, measured</title>
+<style>
+  :root{
+    --bg:#14161A;
+    --panel:#1B1E24;
+    --well:#22262E;
+    --line:#2C313B;
+    --line-2:#373D48;
+    --ink:#E7EAF0;
+    --ink-dim:#8A93A3;
+    --ink-faint:#59616F;
+    --accent:#E8B23A;       /* the reading — used sparingly, like a lit gauge needle */
+    --accent-dim:#7c6222;
+    --good:#6FCF97;
+    --bad:#E1706A;
+    --radius:10px;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(120% 60% at 50% -10%, #1a1d24 0%, var(--bg) 55%) fixed,
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.45;
+    padding:26px 16px 80px;
+  }
+  .wrap{max-width:600px;margin:0 auto}
+
+  /* ---- masthead ---- */
+  .top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .mark{
+    font-family:var(--mono);font-weight:600;font-size:23px;letter-spacing:.34em;
+    color:var(--ink);padding-left:2px;
+  }
+  .mark .tick{color:var(--accent)}
+  .tagline{font-size:11px;color:var(--ink-faint);letter-spacing:.14em;text-transform:uppercase}
+  .units{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+  .units button{
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink-dim);
+    background:transparent;border:0;padding:6px 11px;cursor:pointer;
+  }
+  .units button.on{background:var(--well);color:var(--ink)}
+  .units button:not(.on):hover{color:var(--ink)}
+
+  /* ---- module frame ---- */
+  .mod{
+    background:linear-gradient(180deg,var(--panel),#181B21);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 16px 17px;
+    margin-bottom:14px;
+    position:relative;
+  }
+  .eyebrow{
+    font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);
+    display:flex;align-items:center;gap:8px;margin-bottom:14px;
+  }
+  .eyebrow .rt{margin-left:auto;color:var(--ink-dim);letter-spacing:.08em;text-transform:none;font-size:11px}
+
+  /* ---- profile row ---- */
+  .fields{display:flex;flex-wrap:wrap;gap:10px}
+  .field{flex:1 1 90px;min-width:90px}
+  .field label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:5px}
+  .inbox{display:flex;align-items:baseline;background:var(--well);border:1px solid var(--line);border-radius:8px;padding:0 10px}
+  .inbox input{
+    font-family:var(--mono);font-size:19px;color:var(--ink);background:transparent;border:0;outline:0;
+    width:100%;padding:9px 0;-moz-appearance:textfield;
+  }
+  .inbox input::-webkit-outer-spin-button,.inbox input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .inbox .suffix{font-family:var(--mono);font-size:12px;color:var(--ink-faint);padding-left:6px;white-space:nowrap}
+  .inbox:focus-within{border-color:var(--accent-dim);box-shadow:0 0 0 3px rgba(232,178,58,.10)}
+  .subline{margin-top:12px;font-size:12px;color:var(--ink-dim);font-family:var(--mono);letter-spacing:.02em}
+  .subline b{color:var(--ink);font-weight:500}
+
+  /* ---- lift tabs ---- */
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--line);margin-bottom:18px}
+  .tabs button{
+    font-family:var(--sans);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    background:transparent;border:0;border-bottom:2px solid transparent;
+    color:var(--ink-faint);padding:10px 4px 11px;cursor:pointer;margin-bottom:-1px;transition:color .15s;
+  }
+  .tabs button:hover{color:var(--ink-dim)}
+  .tabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+
+  .entry{display:flex;gap:10px;margin-bottom:20px}
+  .entry .field{flex:1}
+
+  /* ---- readout ---- */
+  .readout{text-align:center;padding:6px 0 4px}
+  .ro-label{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:2px}
+  .ro-value{font-family:var(--mono);font-size:44px;font-weight:500;color:var(--ink);line-height:1.05;letter-spacing:-.01em}
+  .ro-value .u{font-size:17px;color:var(--ink-dim);font-weight:400;margin-left:3px;letter-spacing:0}
+  .ro-value.muted{color:var(--ink-faint)}
+  .ro-sub{margin-top:7px;font-family:var(--mono);font-size:12px;color:var(--ink-dim);display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+  .conf{display:inline-flex;align-items:center}
+
+  /* ---- gauge (signature) ---- */
+  .gauge{margin:20px 2px 4px}
+  .gauge svg{width:100%;height:auto;display:block;overflow:visible}
+  .g-track{stroke:var(--line-2);stroke-width:2;stroke-linecap:round}
+  .g-fill{stroke:var(--accent-dim);stroke-width:2;stroke-linecap:round;opacity:.5}
+  .g-tick{stroke:var(--line-2);stroke-width:1}
+  .g-ticklab{fill:var(--ink-faint);font-family:var(--mono);font-size:9px;text-anchor:middle}
+  .g-target line{stroke:var(--ink-dim);stroke-width:1;stroke-dasharray:2 2}
+  .g-target text{fill:var(--ink-dim);font-family:var(--mono);font-size:8px;text-anchor:middle}
+  .g-needle{transition:transform .65s cubic-bezier(.22,1,.36,1)}
+  @media (prefers-reduced-motion:reduce){.g-needle{transition:none}}
+  .g-needle .stem{stroke:var(--accent);stroke-width:1.5}
+  .g-needle .head{fill:var(--accent)}
+  .g-needle text{fill:var(--accent);font-family:var(--mono);font-size:11px;font-weight:600;text-anchor:middle}
+  .g-you{fill:var(--ink-faint);font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-anchor:middle}
+
+  /* ---- progress ---- */
+  .prog{margin:18px 0 4px}
+  .prog-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);margin-bottom:7px;letter-spacing:.02em}
+  .prog-head .pct{color:var(--ink);font-size:13px}
+  .bar{height:7px;background:var(--well);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-dim),var(--accent));transition:width .55s cubic-bezier(.22,1,.36,1);border-radius:4px}
+  .bar > i.over{background:linear-gradient(90deg,#3f7a54,var(--good))}
+  @media (prefers-reduced-motion:reduce){.bar > i{transition:none}}
+  .gap{margin-top:9px;font-family:var(--mono);font-size:12px;color:var(--ink-dim)}
+  .gap b{color:var(--ink);font-weight:500}
+  .gap.done{color:var(--good)}
+
+  /* ---- reverse readouts ---- */
+  .reverse{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+  .reverse .eyebrow{margin-bottom:11px}
+  .rrow{display:flex;align-items:baseline;gap:10px;font-family:var(--mono);font-size:13px;color:var(--ink-dim);padding:5px 0}
+  .rrow .k{color:var(--ink-faint);flex:0 0 auto}
+  .rrow .arrow{color:var(--ink-faint)}
+  .rrow .v{color:var(--ink);font-weight:500;font-size:15px}
+  .rrow .v.good{color:var(--good)}
+
+  .save{
+    margin-top:18px;width:100%;font-family:var(--sans);font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink);background:var(--well);border:1px solid var(--line-2);border-radius:9px;padding:12px;cursor:pointer;transition:.15s;
+  }
+  .save:hover{border-color:var(--accent-dim);color:#fff}
+  .save:active{transform:translateY(1px)}
+
+  /* ---- goals ---- */
+  .goalgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .goal{background:var(--well);border:1px solid var(--line);border-radius:8px;padding:10px 11px}
+  .goal .gl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);display:flex;justify-content:space-between;align-items:center}
+  .goal .gl .set{font-size:9px;color:var(--accent);letter-spacing:.1em;opacity:0}
+  .goal.custom .gl .set{opacity:1}
+  .goal .gin{display:flex;align-items:baseline;margin-top:4px}
+  .goal .gin input{font-family:var(--mono);font-size:22px;color:var(--ink);background:transparent;border:0;outline:0;width:100%;-moz-appearance:textfield}
+  .goal .gin input::-webkit-outer-spin-button,.goal .gin input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .goal .gin .u{font-family:var(--mono);font-size:12px;color:var(--ink-faint);margin-left:5px}
+  .goal:focus-within{border-color:var(--accent-dim)}
+  .reset{font-family:var(--mono);font-size:11px;color:var(--ink-dim);background:transparent;border:0;cursor:pointer;letter-spacing:.04em}
+  .reset:hover{color:var(--accent)}
+
+  /* ---- history ---- */
+  .hist-lift{padding:12px 0;border-top:1px solid var(--line)}
+  .hist-lift:first-of-type{border-top:0;padding-top:2px}
+  .hl-top{display:flex;align-items:center;gap:12px}
+  .hl-name{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);flex:0 0 96px}
+  .hl-best{font-family:var(--mono);font-size:13px;color:var(--ink-dim)}
+  .hl-best b{color:var(--ink);font-weight:500}
+  .spark{margin-left:auto;flex:0 0 auto}
+  .spark svg{display:block;overflow:visible}
+  .spark path{fill:none;stroke:var(--accent);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+  .spark .end{fill:var(--accent)}
+  .sets{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+  .chip{
+    font-family:var(--mono);font-size:11px;color:var(--ink-dim);background:var(--well);border:1px solid var(--line);
+    border-radius:6px;padding:3px 6px 3px 8px;display:inline-flex;align-items:center;gap:6px;
+  }
+  .chip .x{color:var(--ink-faint);cursor:pointer;font-size:13px;line-height:1}
+  .chip .x:hover{color:var(--bad)}
+  .empty{font-family:var(--mono);font-size:12px;color:var(--ink-faint);padding:6px 0}
+
+  /* ---- disclosure ---- */
+  details{margin-bottom:14px}
+  details > summary{
+    list-style:none;cursor:pointer;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);
+    padding:12px 2px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);
+  }
+  details > summary::-webkit-details-marker{display:none}
+  details > summary::after{content:"+";margin-left:auto;font-family:var(--mono);font-size:14px;color:var(--ink-faint)}
+  details[open] > summary::after{content:"–"}
+  details > summary:hover{color:var(--ink-dim)}
+  .disc-body{padding:4px 2px 14px;font-size:12.5px;color:var(--ink-dim);line-height:1.6}
+  .disc-body p{margin:0 0 9px}
+  .disc-body b{color:var(--ink);font-weight:500}
+  .std-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;margin-top:4px}
+  .std-table th,.std-table td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--line);color:var(--ink-dim)}
+  .std-table th{color:var(--ink-faint);font-weight:400;letter-spacing:.06em}
+  .std-table td:first-child,.std-table th:first-child{text-align:left;color:var(--ink)}
+  .std-table td.hi{color:var(--accent)}
+  .clear{font-family:var(--mono);font-size:11px;color:var(--ink-faint);background:transparent;border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer;margin-top:6px}
+  .clear:hover{color:var(--bad);border-color:var(--bad)}
+
+  .foot{text-align:center;font-size:10.5px;color:var(--ink-faint);letter-spacing:.1em;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <span class="mark">CALIBER<span class="tick">.</span></span>
+      <span class="tagline">strength, measured</span>
+    </div>
+    <div class="units" id="units">
+      <button data-u="kg" class="on">KG</button>
+      <button data-u="lb">LB</button>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="mod">
+    <div class="eyebrow">Profile</div>
+    <div class="fields">
+      <div class="field">
+        <label>Height</label>
+        <div class="inbox"><input id="p_height" type="number" inputmode="decimal"><span class="suffix" id="u_h">cm</span></div>
+      </div>
+      <div class="field">
+        <label>Bodyweight</label>
+        <div class="inbox"><input id="p_bw" type="number" inputmode="decimal"><span class="suffix" id="u_bw">kg</span></div>
+      </div>
+      <div class="field">
+        <label>Aim for top</label>
+        <div class="inbox"><input id="p_aim" type="number" inputmode="numeric" min="1" max="99"><span class="suffix">%</span></div>
+      </div>
+    </div>
+    <div class="subline" id="profileSub"></div>
+  </div>
+
+  <!-- GAUGE -->
+  <div class="mod">
+    <div class="tabs" id="tabs">
+      <button data-l="bench" class="on">Bench</button>
+      <button data-l="squat">Squat</button>
+      <button data-l="deadlift">Deadlift</button>
+      <button data-l="pullup">Pull-up</button>
+    </div>
+
+    <div class="entry">
+      <div class="field">
+        <label>Reps</label>
+        <div class="inbox"><input id="w_reps" type="number" inputmode="numeric" min="1"></div>
+      </div>
+      <div class="field">
+        <label id="w_wlabel">Weight</label>
+        <div class="inbox"><input id="w_weight" type="number" inputmode="decimal"><span class="suffix" id="u_w">kg</span></div>
+      </div>
+    </div>
+
+    <div class="readout">
+      <div class="ro-label" id="roLabel">Estimated 1RM</div>
+      <div class="ro-value" id="roValue">—</div>
+      <div class="ro-sub" id="roSub"></div>
+    </div>
+
+    <div class="gauge">
+      <svg id="gauge" viewBox="0 0 300 62" role="img" aria-label="Percentile gauge"></svg>
+    </div>
+
+    <div class="prog">
+      <div class="prog-head"><span>Progress to goal</span><span class="pct" id="progPct">—</span></div>
+      <div class="bar"><i id="progBar" style="width:0%"></i></div>
+      <div class="gap" id="gapText"></div>
+    </div>
+
+    <div class="reverse">
+      <div class="eyebrow">To reach your goal</div>
+      <div class="rrow"><span class="k" id="rr1k">at your weight</span><span class="arrow">→</span><span class="v" id="rr1v">—</span></div>
+      <div class="rrow"><span class="k" id="rr2k">at your reps</span><span class="arrow">→</span><span class="v" id="rr2v">—</span></div>
+    </div>
+
+    <button class="save" id="saveBtn">Save this set</button>
+  </div>
+
+  <!-- GOALS -->
+  <div class="mod">
+    <div class="eyebrow">Goals <span class="rt" id="goalCtx"></span></div>
+    <div class="goalgrid" id="goalGrid"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="mod">
+    <div class="eyebrow">History</div>
+    <div id="history"></div>
+  </div>
+
+  <details id="stdDisc">
+    <summary>Standards for your bodyweight</summary>
+    <div class="disc-body">
+      <p>Where each 1RM lands on the percentile scale, at <b id="stdBw">80 kg</b> bodyweight. Your aim of top <b id="stdAim">30%</b> is highlighted.</p>
+      <table class="std-table" id="stdTable"></table>
+    </div>
+  </details>
+
+  <details id="aboutDisc">
+    <summary>How the numbers work</summary>
+    <div class="disc-body">
+      <p><b>1RM estimate.</b> Uses the Epley formula (weight × (1 + reps ÷ 30)), with Brzycki shown as a cross-check. Both are most accurate at <b>5 reps or fewer</b>. Past ~10 reps they drift and tend to overestimate — the confidence dot warns you. For sporadic training this matters: a heavy triple tells you far more than a light set of fifteen.</p>
+      <p><b>Percentiles &amp; goals.</b> Standards are approximate, drawn from aggregated public lifter data (Strength Level–style distributions) for <b>adult males</b>, keyed to <b>bodyweight</b>. Height is recorded for context (BMI) but isn't a percentile axis — leverages vary, and no reliable dataset segments lifts by height. Your goal for each lift is the weight that would place you at your chosen percentile, rounded to the nearest 2.5.</p>
+      <p><b>Weighted pull-ups.</b> Computed on the full system load (bodyweight + added), then reported as the <b>added</b> weight. Enter only the weight you hang from the belt.</p>
+      <p><b>Reverse math.</b> "At your weight → N reps" is the reps you'd need at the weight you just entered to prove your goal 1RM. "At your reps → W" is the weight that would prove it at the rep count you entered.</p>
+      <button class="clear" id="clearBtn">Erase all saved data</button>
+    </div>
+  </details>
+
+  <div class="foot" id="storeNote"></div>
+
+</div>
+
+<script>
+"use strict";
+(function(){
+  const KG=0.45359237;
+  const $=id=>document.getElementById(id);
+
+  const LIFTS=["bench","squat","deadlift","pullup"];
+  const NAME={bench:"Bench",squat:"Squat",deadlift:"Deadlift",pullup:"Pull-up"};
+
+  // [ ratio (1RM ÷ bodyweight), percentile ] — pullup ratio uses ADDED weight ÷ bodyweight
+  const STD={
+    bench:   [[.5,5],[.75,20],[1,40],[1.25,58],[1.5,74],[1.75,87],[2,95],[2.25,98]],
+    squat:   [[.75,5],[1,15],[1.25,28],[1.5,45],[1.75,60],[2,74],[2.5,90],[2.75,96]],
+    deadlift:[[1,5],[1.25,15],[1.5,28],[1.75,45],[2,58],[2.25,70],[2.5,80],[3,93],[3.25,97]],
+    pullup:  [[0,15],[.25,42],[.5,63],[.75,82],[1,93],[1.25,97]]
+  };
+
+  // ---------- state + persistence ----------
+  const DEFAULT={
+    _aimTop:true,
+    unit:"kg",
+    profile:{heightCm:183,bwKg:80,aimPct:30},
+    goals:{bench:null,squat:null,deadlift:null,pullup:null},
+    work:{lift:"bench",reps:3,weightKg:90},
+    entries:[]
+  };
+  let mem=null;
+  function load(){
+    try{
+      const r=JSON.parse(localStorage.getItem("caliber_v1"));
+      if(r){
+        const s=Object.assign({},DEFAULT,r,{profile:Object.assign({},DEFAULT.profile,r.profile),goals:Object.assign({},DEFAULT.goals,r.goals),work:Object.assign({},DEFAULT.work,r.work)});
+        if(!r._aimTop){s.profile.aimPct=30;s._aimTop=true;} // aim field now means "top X%"; reset once
+        return s;
+      }
+    }catch(e){}
+    return mem?mem:JSON.parse(JSON.stringify(DEFAULT));
+  }
+  function save(){
+    try{localStorage.setItem("caliber_v1",JSON.stringify(S));persist=true;}catch(e){mem=S;persist=false;}
+  }
+  let persist=true;
+  let S=load();
+
+  // ---------- helpers ----------
+  const round=(x,step)=>Math.round(x/step)*step;
+  const toKg=v=>S.unit==="lb"?v*KG:v;              // input (display unit) -> kg
+  const disp=kg=>S.unit==="lb"?kg/KG:kg;            // kg -> display unit number
+  function fmt(kg,dec){if(kg==null||isNaN(kg))return "—";dec=dec==null?1:dec;let n=disp(kg);let s=n.toFixed(dec);if(dec>0)s=s.replace(/\.0+$/,"").replace(/(\.\d*?)0+$/,"$1");return s;}
+  const U=()=>S.unit;
+
+  function interp(anchors,x,xi,yi){ // xi/yi = 0->ratio,1->pct index selection
+    const a=anchors;
+    if(x<=a[0][xi])return a[0][yi];
+    if(x>=a[a.length-1][xi])return a[a.length-1][yi];
+    for(let i=0;i<a.length-1;i++){const p=a[i],q=a[i+1];if(x>=p[xi]&&x<=q[xi]){const t=(x-p[xi])/(q[xi]-p[xi]);return p[yi]+t*(q[yi]-p[yi]);}}
+    return a[a.length-1][yi];
+  }
+  const ratioToPct=(lift,r)=>interp(STD[lift],r,0,1);
+  const pctToRatio=(lift,p)=>interp(STD[lift],p,1,0);
+
+  function presetGoalKg(lift){return round(pctToRatio(lift,aimPercentile())*S.profile.bwKg,2.5);}
+  function goalKg(lift){return S.goals[lift]!=null?S.goals[lift]:presetGoalKg(lift);}
+  function clampAim(){return Math.min(99,Math.max(1,S.profile.aimPct||30));} // stored as "top X%"
+  const aimPercentile=()=>100-clampAim(); // top 10% -> 90th percentile
+
+  // core computation for the active lift + current working set
+  function compute(){
+    const lift=S.work.lift, reps=S.work.reps, w=S.work.weightKg, bw=S.profile.bwKg;
+    const goal=goalKg(lift);
+    const isPull=lift==="pullup";
+    const load=isPull?bw+w:w;               // total system load
+    let e1=null,brz=null,ratio=null;
+    const valid=reps>0 && load>0 && bw>0;
+    if(valid){
+      const raw=load*(1+reps/30);
+      e1=isPull?raw-bw:raw;                  // report added for pullup
+      if(reps<36){const b=load*36/(37-reps);brz=isPull?b-bw:b;}
+      ratio=e1/bw;
+    }
+    const pct=ratio!=null?ratioToPct(lift,ratio):null;
+
+    // reverse: reps needed at current weight to hit goal
+    let repsForGoal=null, weightForReps=null;
+    if(bw>0){
+      const gLoad=isPull?bw+goal:goal;
+      if(load>0) repsForGoal=30*(gLoad/load-1);
+      if(reps>0){const wl=gLoad/(1+reps/30);weightForReps=isPull?wl-bw:wl;}
+    }
+    return {lift,reps,w,bw,goal,isPull,e1,brz,ratio,pct,repsForGoal,weightForReps,valid};
+  }
+
+  // ---------- render ----------
+  function setVal(el,v){if(document.activeElement!==el)el.value=v;}
+
+  function render(){
+    // unit chrome
+    $("u_h").textContent="cm";
+    $("u_bw").textContent=U(); $("u_w").textContent=U();
+    document.querySelectorAll("#units button").forEach(b=>b.classList.toggle("on",b.dataset.u===S.unit));
+    document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.l===S.work.lift));
+
+    // profile inputs
+    setVal($("p_height"),Math.round(S.profile.heightCm));
+    setVal($("p_bw"),fmt(S.profile.bwKg));
+    setVal($("p_aim"),clampAim());
+    const bmi=S.profile.bwKg/Math.pow(S.profile.heightCm/100,2);
+    const bmiTxt=isFinite(bmi)&&bmi>0?bmi.toFixed(1):"—";
+    $("profileSub").innerHTML=`BMI <b>${bmiTxt}</b> &nbsp;·&nbsp; goals set for top <b>${clampAim()}%</b> of adult males at <b>${fmt(S.profile.bwKg)} ${U()}</b>`;
+
+    // working inputs
+    $("w_wlabel").textContent=S.work.lift==="pullup"?"Added weight":"Weight";
+    setVal($("w_reps"),S.work.reps||"");
+    setVal($("w_weight"),S.work.weightKg!=null?fmt(S.work.weightKg):"");
+
+    const c=compute();
+    paintResult(c);
+
+    renderGoals();
+    renderHistory();
+    renderStandards();
+
+    $("goalCtx").textContent=`top ${clampAim()}% · ${fmt(S.profile.bwKg)} ${U()}`;
+    $("stdBw").textContent=`${fmt(S.profile.bwKg)} ${U()}`;
+    $("stdAim").textContent=clampAim()+"%";
+    $("storeNote").textContent=persist?"Saved on this device":"In-memory only — save this file and open it locally to keep history";
+  }
+
+  // paints everything that depends on the current set + goal (readout, gauge, progress, reverse)
+  function paintResult(c){
+    $("roLabel").textContent=c.isPull?"Estimated added 1RM":"Estimated 1RM";
+    if(c.valid){
+      $("roValue").classList.remove("muted");
+      const sign=c.isPull&&c.e1>=0?"+":(c.isPull?"−":"");
+      const val=c.isPull?Math.abs(c.e1):c.e1;
+      $("roValue").innerHTML=`${sign}${fmt(val)}<span class="u">${U()}</span>`;
+      const cf=confidence(c.reps);
+      const brzTxt=c.brz!=null?`Brzycki ${(c.isPull&&c.brz>=0?"+":"")}${fmt(c.brz)}`:"Brzycki —";
+      $("roSub").innerHTML=`<span>${brzTxt}</span><span class="conf"><span class="dot" style="background:${cf.color}"></span>${cf.label}</span>`;
+    }else{
+      $("roValue").classList.add("muted");
+      $("roValue").innerHTML=`—`;
+      $("roSub").innerHTML=`<span>enter reps &amp; weight</span>`;
+    }
+
+    renderGauge(c);
+
+    if(c.valid && c.goal>0){
+      const p=c.e1/c.goal*100;
+      const over=p>=100;
+      $("progPct").textContent=Math.round(p)+"%";
+      const bar=$("progBar");
+      bar.style.width=Math.max(0,Math.min(100,p))+"%";
+      bar.classList.toggle("over",over);
+      const gapKg=c.goal-c.e1;
+      const gt=$("gapText");
+      if(over){gt.className="gap done";gt.innerHTML=`Goal cleared by <b>${fmt(Math.abs(gapKg))} ${U()}</b> — time to raise it.`;}
+      else{gt.className="gap";gt.innerHTML=`<b>${fmt(gapKg)} ${U()}</b> to go (goal ${c.isPull?"+":""}${fmt(c.goal)} ${U()})`;}
+    }else{
+      $("progPct").textContent="—";$("progBar").style.width="0%";$("gapText").textContent="";
+    }
+
+    $("rr1k").textContent=c.isPull?`at +${fmt(c.w)} ${U()}`:`at ${fmt(c.w)} ${U()}`;
+    $("rr2k").textContent=`at ${c.reps||"—"} rep${c.reps===1?"":"s"}`;
+    const rr1=$("rr1v"), rr2=$("rr2v");
+    if(c.valid && c.repsForGoal!=null){
+      if(c.e1>=c.goal){rr1.className="v good";rr1.textContent="already there";}
+      else{const n=Math.max(1,Math.ceil(c.repsForGoal));rr1.className="v";rr1.textContent=`${n} rep${n===1?"":"s"}`;}
+    }else{rr1.className="v";rr1.textContent="—";}
+    if(c.valid && c.weightForReps!=null){
+      rr2.className="v";
+      rr2.textContent=`${c.isPull?"+":""}${fmt(round(c.weightForReps,2.5))} ${U()}`;
+    }else{rr2.className="v";rr2.textContent="—";}
+  }
+
+  function confidence(reps){
+    if(!reps||reps<1)return{label:"—",color:"var(--ink-faint)"};
+    if(reps<=5)return{label:"High confidence",color:"var(--good)"};
+    if(reps<=10)return{label:"Moderate",color:"var(--accent)"};
+    if(reps<=15)return{label:"Low — likely high",color:"var(--ink-dim)"};
+    return{label:"Very low",color:"var(--bad)"};
+  }
+
+  function renderGauge(c){
+    const x0=16,x1=284,y=40;
+    const X=p=>x0+(Math.max(0,Math.min(100,p))/100)*(x1-x0);
+    const ticks=[5,25,50,75,95];
+    let s="";
+    // track + subtle fill to user pct
+    s+=`<line class="g-track" x1="${x0}" y1="${y}" x2="${x1}" y2="${y}"/>`;
+    if(c.pct!=null)s+=`<line class="g-fill" x1="${x0}" y1="${y}" x2="${X(c.pct)}" y2="${y}"/>`;
+    // ticks
+    ticks.forEach(t=>{const x=X(t);s+=`<line class="g-tick" x1="${x}" y1="${y-4}" x2="${x}" y2="${y+4}"/><text class="g-ticklab" x="${x}" y="${y+15}">${t}</text>`;});
+    // target notch (aim)
+    const ax=X(aimPercentile());
+    s+=`<g class="g-target"><line x1="${ax}" y1="${y-9}" x2="${ax}" y2="${y+7}"/><text x="${ax}" y="${y-13}">AIM</text></g>`;
+    // needle
+    if(c.pct!=null){
+      const nx=X(c.pct);
+      const pctTxt=ordinal(Math.round(c.pct));
+      s+=`<g class="g-needle" transform="translate(${nx},0)">`
+       + `<line class="stem" x1="0" y1="${y-7}" x2="0" y2="${y+7}"/>`
+       + `<path class="head" d="M0,${y-8} l4.5,-6 l-9,0 z"/>`
+       + `<text x="0" y="${y-18}">${pctTxt}</text></g>`;
+      s+=`<text class="g-you" x="${x0}" y="12">YOU</text>`;
+    }else{
+      s+=`<text class="g-you" x="${(x0+x1)/2}" y="14" style="letter-spacing:.1em">enter a set to place the needle</text>`;
+    }
+    $("gauge").innerHTML=s;
+  }
+  function ordinal(n){const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+
+  function renderGoals(){
+    const g=$("goalGrid");
+    g.innerHTML=LIFTS.map(l=>{
+      const custom=S.goals[l]!=null;
+      const val=fmt(goalKg(l));
+      const pfx=l==="pullup"?"+":"";
+      return `<div class="goal ${custom?"custom":""}" data-l="${l}">
+        <div class="gl"><span>${NAME[l]}${l==="pullup"?" <span style='color:var(--ink-faint)'>added</span>":""}</span>
+          ${custom?`<button class="reset" data-reset="${l}">reset</button>`:`<span class="set">CUSTOM?</span>`}</div>
+        <div class="gin"><span class="u" style="opacity:${pfx?1:0};width:${pfx?"auto":"0"}">${pfx}</span><input data-goal="${l}" type="number" inputmode="decimal" value="${val}"><span class="u">${U()}</span></div>
+      </div>`;
+    }).join("");
+  }
+
+  function renderHistory(){
+    const h=$("history");
+    const byLift=Object.fromEntries(LIFTS.map(l=>[l,[]]));
+    S.entries.forEach((e,i)=>{if(byLift[e.lift])byLift[e.lift].push(Object.assign({idx:i},e));});
+    const active=LIFTS.filter(l=>byLift[l].length);
+    if(!active.length){h.innerHTML=`<div class="empty">No saved sets yet. Log one above and it lands here.</div>`;return;}
+    h.innerHTML=active.map(l=>{
+      const list=byLift[l];
+      const best=Math.max(...list.map(e=>e.e1rmKg));
+      const pfx=l==="pullup"?"+":"";
+      const spark=sparkline(list.map(e=>e.e1rmKg));
+      const chips=list.slice(-6).reverse().map(e=>{
+        const wl=e.lift==="pullup"?`+${fmt(e.weightKg)}`:fmt(e.weightKg);
+        return `<span class="chip">${e.reps}×${wl} <span style="color:var(--ink-faint)">·</span> ${pfx}${fmt(e.e1rmKg)} <span class="x" data-del="${e.idx}">×</span></span>`;
+      }).join("");
+      return `<div class="hist-lift">
+        <div class="hl-top">
+          <span class="hl-name">${NAME[l]}</span>
+          <span class="hl-best">best <b>${pfx}${fmt(best)} ${U()}</b></span>
+          <span class="spark">${spark}</span>
+        </div>
+        <div class="sets">${chips}</div>
+      </div>`;
+    }).join("");
+  }
+
+  function sparkline(vals){
+    if(vals.length<2)return `<svg width="92" height="24"></svg>`;
+    const w=92,h=24,pad=3;
+    const min=Math.min(...vals),max=Math.max(...vals),rng=max-min||1;
+    const pts=vals.map((v,i)=>{
+      const x=pad+(i/(vals.length-1))*(w-2*pad);
+      const y=h-pad-((v-min)/rng)*(h-2*pad);
+      return [x,y];
+    });
+    const d=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+    const last=pts[pts.length-1];
+    return `<svg width="${w}" height="${h}"><path d="${d}"/><circle class="end" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2"/></svg>`;
+  }
+
+  function renderStandards(){
+    const bw=S.profile.bwKg, aim=aimPercentile();
+    let pcts=[5,25,50,95];
+    if(!pcts.includes(aim)){pcts.push(aim);pcts.sort((a,b)=>a-b);}
+    const head=`<tr><th>Lift</th>${pcts.map(p=>`<th class="${p===aim?"hi":""}">${ordinal(p)}${p===aim?"·aim":""}</th>`).join("")}</tr>`;
+    const rows=LIFTS.map(l=>{
+      const pfx=l==="pullup"?"+":"";
+      const tds=pcts.map(p=>{
+        const kg=round(pctToRatio(l,p)*bw,2.5);
+        return `<td class="${p===aim?"hi":""}">${pfx}${fmt(kg)}</td>`;
+      }).join("");
+      return `<tr><td>${NAME[l]}</td>${tds}</tr>`;
+    }).join("");
+    $("stdTable").innerHTML=head+rows;
+  }
+
+  // ---------- events ----------
+  $("units").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.unit=b.dataset.u;save();render();});
+  $("tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.work.lift=b.dataset.l;save();render();});
+
+  function numOr(v,d){const n=parseFloat(v);return isFinite(n)?n:d;}
+
+  $("p_height").addEventListener("input",e=>{S.profile.heightCm=numOr(e.target.value,S.profile.heightCm);save();render();});
+  $("p_bw").addEventListener("input",e=>{const v=numOr(e.target.value,null);if(v!=null)S.profile.bwKg=toKg(v);save();render();});
+  $("p_aim").addEventListener("input",e=>{const v=parseInt(e.target.value,10);if(isFinite(v))S.profile.aimPct=v;save();render();});
+  $("p_aim").addEventListener("blur",()=>{S.profile.aimPct=clampAim();save();render();});
+
+  $("w_reps").addEventListener("input",e=>{const v=parseInt(e.target.value,10);S.work.reps=isFinite(v)?v:0;save();render();});
+  $("w_weight").addEventListener("input",e=>{const v=numOr(e.target.value,null);S.work.weightKg=v!=null?toKg(v):null;save();render();});
+
+  $("goalGrid").addEventListener("input",e=>{
+    const inp=e.target.closest("input[data-goal]");if(!inp)return;
+    const l=inp.dataset.goal;const v=numOr(inp.value,null);
+    S.goals[l]=v!=null?toKg(v):null;save();
+    // repaint the readout/gauge/progress/reverse (goal drives them) without rebuilding the focused input
+    $("goalCtx").textContent=`top ${clampAim()}% · ${fmt(S.profile.bwKg)} ${U()}`;
+    paintResult(compute());
+    inp.closest(".goal").classList.add("custom");
+  });
+  $("goalGrid").addEventListener("click",e=>{const r=e.target.closest("button[data-reset]");if(!r)return;S.goals[r.dataset.reset]=null;save();render();});
+
+  $("saveBtn").addEventListener("click",()=>{
+    const c=compute();
+    if(!c.valid){flash($("saveBtn"),"Enter reps & weight first");return;}
+    S.entries.push({lift:c.lift,reps:c.reps,weightKg:c.w,e1rmKg:c.e1,ts:Date.now()});
+    save();render();flash($("saveBtn"),"Saved ✓");
+  });
+  function flash(btn,msg){const o=btn.textContent;btn.textContent=msg;btn.disabled=true;setTimeout(()=>{btn.textContent=o;btn.disabled=false;},1100);}
+
+  $("history").addEventListener("click",e=>{const x=e.target.closest("[data-del]");if(!x)return;const i=parseInt(x.dataset.del,10);S.entries.splice(i,1);save();render();});
+
+  $("clearBtn").addEventListener("click",()=>{
+    S.entries=[];S.goals={bench:null,squat:null,deadlift:null,pullup:null};save();render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
