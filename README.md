@@ -1,7 +1,7 @@
-<!--
-  Live version (after enabling GitHub Pages — see repo settings):
-  https://<your-username>.github.io/caliber/caliber.html
--->
+
+Live version (after enabling GitHub Pages — see repo settings):
+https://<your-username>.github.io/caliber/caliber.html
+
 
 <p align="center">
   <img src="assets/banner.svg" alt="Caliber — strength, measured" width="100%">
