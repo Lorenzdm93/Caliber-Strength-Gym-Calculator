@@ -1,15 +1,14 @@
-
-Live version (after enabling GitHub Pages — see repo settings):
-https://<your-username>.github.io/caliber/caliber.html
-
-
 <p align="center">
-  <img src="assets/banner.svg" alt="Caliber — strength, measured" width="100%">
+  <img src="banner.svg" alt="Caliber — strength, measured" width="100%">
 </p>
 
 <p align="center">
   <strong>Strength, measured.</strong><br>
   A single-file, offline strength gauge — percentile rankings, 1RM estimation, and reverse rep/weight calculators for the powerlifts and weighted pull-ups.
+</p>
+
+<p align="center">
+  <a href="https://lorenzdm93.github.io/Caliber-Strength-Gym-Calculator/caliber.html"><strong>▶ Run it in your browser</strong></a>
 </p>
 
 <p align="center">
@@ -28,17 +27,15 @@ Caliber is a strength tracker that lives in **one HTML file**. Enter a set — r
 
 No account, no server, no build step, no tracking. Open the file and go. Everything you type stays in your browser, on your device.
 
-## Download and run
+## Use it
 
-Pick whichever is easiest:
+- **Run it live** — open **[the hosted version](https://lorenzdm93.github.io/Caliber-Strength-Gym-Calculator/caliber.html)** in any browser, including mobile.
+- **Download the file** — open [`caliber.html`](caliber.html), then click the **Download raw file** button (the ⬇ icon at the top-right of the file view). Double-click it to open in your browser — works fully offline.
+- **Clone it** — `git clone https://github.com/Lorenzdm93/Caliber-Strength-Gym-Calculator.git`, then open `caliber.html`.
 
-- **Just the file** — open [`caliber.html`](caliber.html), then click the **Download raw file** button (the ⬇ icon at the top-right of the file view). Double-click the downloaded file to open it in any browser.
-- **The whole repo** — click the green **Code** button above → **Download ZIP**, unzip, and open `caliber.html`.
-- **Clone it** — `git clone https://github.com/<your-username>/caliber.git`, then open `caliber/caliber.html`.
+Your sets, goals, and history are saved in that browser's local storage.
 
-It runs entirely from `file://` — no internet needed once you have the file. Your sets, goals, and history are saved in that browser's local storage.
-
-> **Tip:** on a phone, open the file in your browser and *Add to Home Screen* for one-tap access at the gym.
+> **Tip:** on a phone, open it and *Add to Home Screen* for one-tap access at the gym.
 
 ## Features
 
