@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://lorenzdm93.github.io/Caliber-Strength-Gym-Calculator/caliber.html"><strong>▶ Run it in your browser</strong></a>
+  <a href="https://lorenzdm93.github.io/Caliber-Strength-Gym-Calculator/"><strong>▶ Run it in your browser</strong></a>
 </p>
 
 <p align="center">
